@@ -3,18 +3,34 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/kakaio95/RPA.git'
+                checkout scm
             }
         }
-        stage('Terraform Init') {
+        stage('Initialize Terraform') {
             steps {
-                sh 'terraform init'
+                sh '''
+                terraform init
+                '''
             }
         }
-        stage('Terraform Apply') {
+        stage('Plan Infrastructure') {
             steps {
-                sh 'terraform apply -auto-approve'
+                sh '''
+                terraform plan -out=tfplan
+                '''
             }
+        }
+        stage('Apply Changes') {
+            steps {
+                sh '''
+                terraform apply -auto-approve tfplan
+                '''
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
         }
     }
 }
